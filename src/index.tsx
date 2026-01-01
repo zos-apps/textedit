@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo } from 'lucide-react';
-
-interface TextEditProps {
-  onClose: () => void;}
-
-const STORAGE_KEY = 'zos-textedit-content';
+import type { AppProps } from '@zos-apps/config';
+import { useLocalStorage } from '@zos-apps/config';
 
 const defaultContent = `Welcome to TextEdit
 
@@ -17,33 +14,15 @@ Features:
 
 Start typing to begin...`;
 
-const TextEdit: React.FC<TextEditProps> = ({ onClose }) => {
-  const [content, setContent] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved || defaultContent;
-    } catch {
-      return defaultContent;
-    }
-  });
+const TextEdit: React.FC<AppProps> = ({ onClose: _onClose }) => {
+  // Content auto-saves via useLocalStorage
+  const [content, setContent] = useLocalStorage<string>('textedit-content', defaultContent);
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
   const [alignment, setAlignment] = useState<'left' | 'center' | 'right'>('left');
   const [fontSize, setFontSize] = useState(14);
   const [fontFamily, setFontFamily] = useState('system-ui');
-
-  // Auto-save
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, content);
-      } catch (e) {
-        console.error('Failed to save:', e);
-      }
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [content]);
 
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
   const charCount = content.length;
